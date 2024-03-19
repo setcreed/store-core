@@ -32,7 +32,7 @@ func (db *DBService) Query(ctx context.Context, in *v1.QueryRequest) (*v1.QueryR
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
 
-	ret, err := db.f.Store().QueryByTableName(ctx, sqlApi.Table, nil)
+	ret, err := db.f.Store().QueryByTableName(ctx, sqlApi.Table, in.Params)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}

@@ -23,9 +23,9 @@ func newStore(db *gorm.DB) StoreInterface {
 func (s *store) QueryByTableName(ctx context.Context, tableName string, params *v1.SimpleParams) ([]map[string]interface{}, error) {
 	dbResult := make([]map[string]interface{}, 0)
 	db := s.db.Table(tableName)
-	//for k, v := range params.Params.AsMap() {
-	//	db = db.Where(k, v)
-	//}
+	for k, v := range params.Params.AsMap() {
+		db = db.Where(k, v)
+	}
 	db = db.Find(&dbResult)
 
 	return dbResult, db.Error
