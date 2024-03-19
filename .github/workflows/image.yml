@@ -41,6 +41,7 @@ jobs:
           build-args: |
             VERSION=${{ env.COMMIT_HASH }}-${{ env.TIMESTAMP }}
           push: true
+
           tags: |
             ${{ secrets.DOCKER_NAME }}/assets-generator:latest
             ${{ secrets.DOCKER_NAME }}/assets-generator:v0.1
