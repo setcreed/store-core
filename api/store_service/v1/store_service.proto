@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package store_service.v1;
+
+option go_package = "github.com/setcreed/store-core/store_service/v1;v1";
+
+import "google/protobuf/struct.proto";
+
+
+service DBService {
+  rpc Query(QueryRequest) returns (QueryResponse);
+
+  rpc Exec(ExecRequest) returns (ExecResponse);
+
+  rpc Tx(stream TxRequest) returns(stream TxResponse);
+}
+
+message SimpleParams {
+  google.protobuf.Struct params = 1;
+}
+
+message QueryRequest {
+  string name = 1;
+  SimpleParams params = 2;
+}
+
+message QueryResponse {
+  string message = 1;
+  repeated google.protobuf.Struct result = 2;
+}
+
+// 处理增删改
+message ExecRequest {
+  string name = 1;   //api名称
+  SimpleParams params = 2;// 用于拼凑where s
+}
+message ExecResponse {
+  string message = 1;   //结果描述
+  int64 rows_affected = 2;  // 受影响的行
+  google.protobuf.Struct select = 3; //这里可以执行设置 执行完exec 之后要取的值
+}
+
+// 处理事务类操作
+message TxRequest{
+  string api = 1;  //传入api的name
+  SimpleParams params = 2;
+  string type = 3;// 支持两种 1 query 2 exec
+}
+message TxResponse{
+  google.protobuf.Struct result = 2; //结果集
+}

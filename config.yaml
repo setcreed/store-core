@@ -1,0 +1,20 @@
+default:
+  mode: debug
+  app:
+    rpcPort: 8080
+    httpPort: 8090
+
+dbConfig:
+  dsn: "root:123456@tcp(47.116.58.137:33060)/test?charset=utf8mb4&parseTime=True&loc=Local"
+  maxOpenConn: 20
+  maxLifeTime: 1800
+  maxIdleConn: 5
+
+
+sqlConfig:
+  - name: userList
+    table: users
+    sql: ""
+  - name: deptList
+    table: depts
+    sql: ""
