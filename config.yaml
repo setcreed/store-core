@@ -14,7 +14,7 @@ dbConfig:
 sqlConfig:
   - name: userList
     table: users
-    sql: "select * from users limit 1"
+    sql: "select * from users where user_id>@id"
   - name: deptList
     table: depts
     sql: ""

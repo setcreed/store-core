@@ -28,15 +28,12 @@ func NewDBService(cfg *config.Config, f data.ShareDaoFactory) *DBService {
 }
 
 func (db *DBService) Query(ctx context.Context, in *v1.QueryRequest) (*v1.QueryResponse, error) {
-	for _, item := range db.cfg.SQLs {
-		fmt.Println(item)
-	}
 	sqlApi := db.cfg.FindSQLByName(in.Name)
 	if sqlApi == nil {
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
-
-	ret, err := db.f.Store().QueryByTableName(ctx, sqlApi, in.Params)
+	fmt.Printf("sqlApi  name:%v, table:%v, sql:%v\n", sqlApi.Name, sqlApi.Table, sqlApi.Sql)
+	ret, err := db.f.Store().Query(ctx, sqlApi, in.Params)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}

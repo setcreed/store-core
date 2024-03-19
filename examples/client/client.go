@@ -24,6 +24,7 @@ func main() {
 	paramStruct, err := structpb.NewStruct(map[string]interface{}{
 		//"user_id>?": 1,
 		//"user_id<?": 3,
+		"id": 1,
 	})
 	if err != nil {
 		log.Fatal(err)
