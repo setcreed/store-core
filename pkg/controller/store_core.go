@@ -54,13 +54,18 @@ func (db *DBService) Exec(ctx context.Context, in *v1.ExecRequest) (*v1.ExecResp
 	if sqlApi == nil {
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
-	rowsAffected, err := db.f.Store().ExecBySql(ctx, sqlApi, in.Params)
+	rowsAffected, selectKey, err := db.f.Store().ExecBySql(ctx, sqlApi, in.Params)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
+	}
+	selectKeyValue, err := util.MapToStruct(selectKey)
+	if err != nil {
+		selectKeyValue = nil
 	}
 	return &v1.ExecResponse{
 		Message:      "success",
 		RowsAffected: rowsAffected,
+		Select:       selectKeyValue,
 	}, nil
 
 }

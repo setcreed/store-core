@@ -25,9 +25,9 @@ func main() {
 		//"user_id>?": 1,
 		//"user_id<?": 3,
 		//"id": 1,
-		//"user_name":     "test",
-		//"user_password": "test",
-		"user_id": 4,
+		"user_name":     "test1",
+		"user_password": "123456",
+		//"user_id": 4,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -36,14 +36,12 @@ func main() {
 		Params: paramStruct,
 	}
 	//req := &v1.QueryRequest{Name: "userList", Params: params}
-	req := &v1.QueryRequest{Name: "deleteUser", Params: params}
-	rsp := &v1.QueryResponse{}
+	req := &v1.ExecRequest{Name: "addUser", Params: params}
+	rsp := &v1.ExecResponse{}
 	err = client.Invoke(context.Background(),
 		"/store_service.v1.DBService/Exec", req, rsp)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, item := range rsp.Result {
-		fmt.Println(item.AsMap())
-	}
+	fmt.Println(rsp.Select.AsMap())
 }

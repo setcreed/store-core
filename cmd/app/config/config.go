@@ -24,9 +24,14 @@ type DBConfig struct {
 }
 
 type SQLConfig struct {
-	Name  string `yaml:"name"`
-	Table string `yaml:"table"`
-	Sql   string `yaml:"sql"`
+	Name   string  `yaml:"name"`
+	Table  string  `yaml:"table"`
+	Sql    string  `yaml:"sql"`
+	Select *Select `yaml:"select"`
+}
+
+type Select struct {
+	Sql string `yaml:"sql"`
 }
 
 func (c *Config) Validate() error {

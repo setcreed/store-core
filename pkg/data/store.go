@@ -14,7 +14,7 @@ type StoreInterface interface {
 	QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
-	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, error)
+	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error)
 }
 
 type store struct {
@@ -41,7 +41,7 @@ func (s *store) QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfi
 
 // Query 设置sql优先，如果写了sql和table，优先执行sql
 func (s *store) Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error) {
-	if sqlConfig.Sql == "" || sqlConfig.Table == "" {
+	if sqlConfig.Sql == "" && sqlConfig.Table == "" {
 		return nil, fmt.Errorf("error sql or table ")
 	}
 	if sqlConfig.Sql != "" {
@@ -58,7 +58,29 @@ func (s *store) QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, par
 	return dbResult, db.Error
 }
 
-func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, error) {
-	db := s.db.Exec(sqlConfig.Sql, params.Params.AsMap())
-	return db.RowsAffected, db.Error
+func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error) {
+	if sqlConfig.Select != nil {
+		selectKey := make(map[string]interface{})
+		var rowsAffected int64 = 0
+		err := s.db.Transaction(func(tx *gorm.DB) error {
+			db := tx.Exec(sqlConfig.Sql, params.Params.AsMap())
+			if db.Error != nil {
+				return db.Error
+			}
+			rowsAffected = db.RowsAffected
+			db = tx.Raw(sqlConfig.Select.Sql).Find(&selectKey)
+			if db.Error != nil {
+				return db.Error
+			}
+			return nil
+		})
+		if err != nil {
+			return 0, nil, err
+		}
+		return rowsAffected, selectKey, nil
+	} else {
+		db := s.db.Exec(sqlConfig.Sql, params.Params.AsMap())
+		return db.RowsAffected, nil, db.Error
+	}
+
 }
