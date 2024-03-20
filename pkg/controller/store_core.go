@@ -48,3 +48,19 @@ func (db *DBService) Query(ctx context.Context, in *v1.QueryRequest) (*v1.QueryR
 		Result:  list,
 	}, nil
 }
+
+func (db *DBService) Exec(ctx context.Context, in *v1.ExecRequest) (*v1.ExecResponse, error) {
+	sqlApi := db.cfg.FindSQLByName(in.Name)
+	if sqlApi == nil {
+		return nil, status.Error(codes.Unavailable, "error api name")
+	}
+	rowsAffected, err := db.f.Store().ExecBySql(ctx, sqlApi, in.Params)
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, err.Error())
+	}
+	return &v1.ExecResponse{
+		Message:      "success",
+		RowsAffected: rowsAffected,
+	}, nil
+
+}

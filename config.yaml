@@ -18,3 +18,7 @@ sqlConfig:
   - name: deptList
     table: depts
     sql: ""
+  - name: addUser
+    sql: "insert into users(user_name, user_password) values(@user_name, @user_password)"
+  - name: deleteUser
+    sql: "delete from users where user_id=@user_id"
