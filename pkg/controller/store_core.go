@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -67,5 +68,54 @@ func (db *DBService) Exec(ctx context.Context, in *v1.ExecRequest) (*v1.ExecResp
 		RowsAffected: rowsAffected,
 		Select:       selectKeyValue,
 	}, nil
+}
 
+func (db *DBService) Tx(c v1.DBService_TxServer) error {
+	tx := db.f.Store().GetDB().Begin()
+	for {
+		txRequest, err := c.Recv()
+		if err != nil {
+			if err == io.EOF {
+				fmt.Println("EOF")
+				tx.Commit()
+				return nil
+			}
+			fmt.Println("Error-0:", err)
+			tx.Rollback()
+			return err
+		}
+		sqlApi := db.cfg.FindSQLByName(txRequest.Api)
+		if sqlApi == nil {
+			tx.Rollback()
+			return status.Error(codes.Unavailable, "error api name")
+		}
+
+		ret := make(map[string]interface{})
+		if txRequest.Type == "query" {
+			queryRet, err := db.f.Store().QueryBySql(context.Background(), sqlApi, txRequest.Params)
+			if err != nil {
+				fmt.Println("Error-1:", err)
+				tx.Rollback()
+				return err
+			}
+			ret["query"] = queryRet
+		} else {
+			af, sk, err := db.f.Store().ExecBySql(context.Background(), sqlApi, txRequest.Params)
+			if err != nil {
+				fmt.Println("Error-2:", err)
+				tx.Rollback()
+				return err
+			}
+			ret["exec"] = []interface{}{af, sk} //受影响的行、selectKey
+		}
+		m, _ := util.MapToStruct(ret)
+		err = c.Send(&v1.TxResponse{
+			Result: m,
+		})
+		if err != nil {
+			fmt.Println("Error-3:", err)
+			tx.Rollback()
+			return err
+		}
+	}
 }

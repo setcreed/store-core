@@ -15,6 +15,8 @@ type StoreInterface interface {
 	QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error)
+
+	GetDB() *gorm.DB
 }
 
 type store struct {
@@ -54,16 +56,18 @@ func (s *store) Query(ctx context.Context, sqlConfig *config.SQLConfig, params *
 
 func (s *store) QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error) {
 	dbResult := make([]map[string]interface{}, 0)
-	db := s.db.Raw(sqlConfig.Sql, params.Params.AsMap()).Find(&dbResult)
+	db := s.GetDB()
+	db = db.Raw(sqlConfig.Sql, params.Params.AsMap()).Find(&dbResult)
 	return dbResult, db.Error
 }
 
 func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error) {
+	db := s.GetDB()
 	if sqlConfig.Select != nil {
 		selectKey := make(map[string]interface{})
 		var rowsAffected int64 = 0
-		err := s.db.Transaction(func(tx *gorm.DB) error {
-			db := tx.Exec(sqlConfig.Sql, params.Params.AsMap())
+		err := db.Transaction(func(tx *gorm.DB) error {
+			db = tx.Exec(sqlConfig.Sql, params.Params.AsMap())
 			if db.Error != nil {
 				return db.Error
 			}
@@ -79,8 +83,12 @@ func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, para
 		}
 		return rowsAffected, selectKey, nil
 	} else {
-		db := s.db.Exec(sqlConfig.Sql, params.Params.AsMap())
+		db = db.Exec(sqlConfig.Sql, params.Params.AsMap())
 		return db.RowsAffected, nil, db.Error
 	}
 
+}
+
+func (s *store) GetDB() *gorm.DB {
+	return s.db
 }
