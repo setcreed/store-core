@@ -22,5 +22,8 @@ sqlConfig:
     sql: "insert into users(user_name, user_password) values(@user_name, @user_password)"
     select:
       sql: "SELECT LAST_INSERT_ID() as user_id"
+  - name: addUserOrder
+    sql: "insert into user_order(user_id) values(@user_id)"
+
   - name: deleteUser
     sql: "delete from users where user_id=@user_id"
