@@ -14,6 +14,7 @@ type StoreInterface interface {
 	QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
 	Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
+	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, error)
 }
 
 type store struct {
@@ -26,6 +27,7 @@ func newStore(db *gorm.DB) StoreInterface {
 	}
 }
 
+// deprecated
 func (s *store) QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error) {
 	dbResult := make([]map[string]interface{}, 0)
 	db := s.db.Table(sqlConfig.Table)
@@ -54,4 +56,9 @@ func (s *store) QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, par
 	dbResult := make([]map[string]interface{}, 0)
 	db := s.db.Raw(sqlConfig.Sql, params.Params.AsMap()).Find(&dbResult)
 	return dbResult, db.Error
+}
+
+func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, error) {
+	db := s.db.Exec(sqlConfig.Sql, params.Params.AsMap())
+	return db.RowsAffected, db.Error
 }

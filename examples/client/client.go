@@ -24,7 +24,10 @@ func main() {
 	paramStruct, err := structpb.NewStruct(map[string]interface{}{
 		//"user_id>?": 1,
 		//"user_id<?": 3,
-		"id": 1,
+		//"id": 1,
+		//"user_name":     "test",
+		//"user_password": "test",
+		"user_id": 4,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -32,10 +35,11 @@ func main() {
 	params := &v1.SimpleParams{
 		Params: paramStruct,
 	}
-	req := &v1.QueryRequest{Name: "userList", Params: params}
+	//req := &v1.QueryRequest{Name: "userList", Params: params}
+	req := &v1.QueryRequest{Name: "deleteUser", Params: params}
 	rsp := &v1.QueryResponse{}
 	err = client.Invoke(context.Background(),
-		"/store_service.v1.DBService/Query", req, rsp)
+		"/store_service.v1.DBService/Exec", req, rsp)
 	if err != nil {
 		log.Fatal(err)
 	}
