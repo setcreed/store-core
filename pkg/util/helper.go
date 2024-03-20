@@ -21,3 +21,14 @@ func MapListToStructList(m []map[string]interface{}) ([]*structpb.Struct, error)
 	}
 	return ret, nil
 }
+
+func MapToStruct(m map[string]interface{}) (*structpb.Struct, error) {
+	if m == nil {
+		return nil, nil
+	}
+	s, err := structpb.NewStruct(m)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
