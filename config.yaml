@@ -5,7 +5,7 @@ default:
     httpPort: 8090
 
 dbConfig:
-  dsn: "root:123456@tcp(47.116.58.137:33060)/test?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "root:123456@tcp(127.0.0.1:33060)/test?charset=utf8mb4&parseTime=True&loc=Local"
   maxOpenConn: 20
   maxLifeTime: 1800
   maxIdleConn: 5
