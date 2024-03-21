@@ -34,7 +34,7 @@ func (db *DBService) Query(ctx context.Context, in *v1.QueryRequest) (*v1.QueryR
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
 	fmt.Printf("sqlApi  name:%v, table:%v, sql:%v\n", sqlApi.Name, sqlApi.Table, sqlApi.Sql)
-	ret, err := db.f.Store().Query(ctx, sqlApi, in.Params)
+	ret, err := db.f.Store().Query(ctx, sqlApi, in.Params, nil)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}
@@ -55,7 +55,7 @@ func (db *DBService) Exec(ctx context.Context, in *v1.ExecRequest) (*v1.ExecResp
 	if sqlApi == nil {
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
-	rowsAffected, selectKey, err := db.f.Store().ExecBySql(ctx, sqlApi, in.Params)
+	rowsAffected, selectKey, err := db.f.Store().ExecBySql(ctx, sqlApi, in.Params, nil)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}
@@ -92,7 +92,7 @@ func (db *DBService) Tx(c v1.DBService_TxServer) error {
 
 		ret := make(map[string]interface{})
 		if txRequest.Type == "query" {
-			queryRet, err := db.f.Store().QueryBySql(context.Background(), sqlApi, txRequest.Params)
+			queryRet, err := db.f.Store().QueryBySql(context.Background(), sqlApi, txRequest.Params, tx)
 			if err != nil {
 				fmt.Println("Error-1:", err)
 				tx.Rollback()
@@ -100,7 +100,7 @@ func (db *DBService) Tx(c v1.DBService_TxServer) error {
 			}
 			ret["query"] = queryRet
 		} else {
-			af, sk, err := db.f.Store().ExecBySql(context.Background(), sqlApi, txRequest.Params)
+			af, sk, err := db.f.Store().ExecBySql(context.Background(), sqlApi, txRequest.Params, tx)
 			if err != nil {
 				fmt.Println("Error-2:", err)
 				tx.Rollback()

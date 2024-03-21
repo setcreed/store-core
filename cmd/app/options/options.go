@@ -2,8 +2,6 @@ package options
 
 import (
 	"fmt"
-	"github.com/setcreed/store-core/pkg/controller"
-	"github.com/setcreed/store-core/pkg/data"
 	"net/http"
 	"os"
 	"time"
@@ -14,6 +12,8 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/setcreed/store-core/cmd/app/config"
+	"github.com/setcreed/store-core/pkg/controller"
+	"github.com/setcreed/store-core/pkg/data"
 	"github.com/setcreed/store-core/pkg/util/cfg"
 )
 
