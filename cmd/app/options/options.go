@@ -58,6 +58,10 @@ func (o *Options) Complete() error {
 	}
 
 	if o.ComponentConfig.Default.App.RpcPort == 0 {
+		o.ComponentConfig.Default.App.RpcPort = 8080
+	}
+
+	if o.ComponentConfig.Default.App.HttpPort == 0 {
 		o.ComponentConfig.Default.App.RpcPort = 8090
 	}
 
