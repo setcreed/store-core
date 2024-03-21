@@ -12,9 +12,9 @@ import (
 
 type StoreInterface interface {
 	QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
-	QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
-	Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error)
-	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error)
+	QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) ([]map[string]interface{}, error)
+	Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) ([]map[string]interface{}, error)
+	ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) (int64, map[string]interface{}, error)
 
 	GetDB() *gorm.DB
 }
@@ -42,27 +42,33 @@ func (s *store) QueryByTableName(ctx context.Context, sqlConfig *config.SQLConfi
 }
 
 // Query 设置sql优先，如果写了sql和table，优先执行sql
-func (s *store) Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error) {
+func (s *store) Query(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) ([]map[string]interface{}, error) {
 	if sqlConfig.Sql == "" && sqlConfig.Table == "" {
 		return nil, fmt.Errorf("error sql or table ")
 	}
 	if sqlConfig.Sql != "" {
-		return s.QueryBySql(ctx, sqlConfig, params)
+		return s.QueryBySql(ctx, sqlConfig, params, txn)
 	}
 
 	return s.QueryByTableName(ctx, sqlConfig, params)
 
 }
 
-func (s *store) QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) ([]map[string]interface{}, error) {
+func (s *store) QueryBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) ([]map[string]interface{}, error) {
 	dbResult := make([]map[string]interface{}, 0)
 	db := s.GetDB()
+	if txn != nil {
+		db = txn
+	}
 	db = db.Raw(sqlConfig.Sql, params.Params.AsMap()).Find(&dbResult)
 	return dbResult, db.Error
 }
 
-func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams) (int64, map[string]interface{}, error) {
+func (s *store) ExecBySql(ctx context.Context, sqlConfig *config.SQLConfig, params *v1.SimpleParams, txn *gorm.DB) (int64, map[string]interface{}, error) {
 	db := s.GetDB()
+	if txn != nil {
+		db = txn
+	}
 	if sqlConfig.Select != nil {
 		selectKey := make(map[string]interface{})
 		var rowsAffected int64 = 0

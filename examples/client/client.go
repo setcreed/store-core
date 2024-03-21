@@ -25,7 +25,7 @@ func main() {
 		//"user_id>?": 1,
 		//"user_id<?": 3,
 		//"id": 1,
-		"user_name":     "test1",
+		"user_name":     "test2",
 		"user_password": "123456",
 		//"user_id": 4,
 	})
