@@ -34,6 +34,12 @@ func (db *DBService) Query(ctx context.Context, in *v1.QueryRequest) (*v1.QueryR
 		return nil, status.Error(codes.Unavailable, "error api name")
 	}
 	fmt.Printf("sqlApi  name:%v, table:%v, sql:%v\n", sqlApi.Name, sqlApi.Table, sqlApi.Sql)
+
+	//放到你任务需要拆分颗粒度的部分
+	if code, yes := util.ContextIsBroken(ctx); yes {
+		return nil, status.Error(code, ctx.Err().Error())
+	}
+	fmt.Println("继续执行")
 	ret, err := db.f.Store().Query(ctx, sqlApi, in.Params, nil)
 	if err != nil {
 		return nil, status.Error(codes.Unavailable, err.Error())

@@ -1,6 +1,12 @@
 package util
 
-import "google.golang.org/protobuf/types/known/structpb"
+import (
+	"context"
+	"fmt"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/structpb"
+)
 
 func MapListToInterfaceList(m []map[string]interface{}) []interface{} {
 	ret := make([]interface{}, len(m))
@@ -31,4 +37,19 @@ func MapToStruct(m map[string]interface{}) (*structpb.Struct, error) {
 		return nil, err
 	}
 	return s, nil
+}
+
+func ContextIsBroken(ctx context.Context) (codes.Code, bool) {
+	if ctx.Err() != nil {
+		fmt.Println("broken:", ctx.Err().Error())
+		switch ctx.Err() {
+		case context.Canceled:
+			return codes.Canceled, true
+		case context.DeadlineExceeded:
+			return codes.DeadlineExceeded, true
+		default:
+			return codes.Unavailable, true
+		}
+	}
+	return codes.OK, false
 }
